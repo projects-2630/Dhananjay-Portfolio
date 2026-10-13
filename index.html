@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dhananjay | Backend Developer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { mono: ['"JetBrains Mono"', 'monospace'] },
+                    colors: {
+                        dark: '#1a1b26',
+                        darker: '#16161e',
+                        accent: '#7aa2f7',
+                        success: '#9ece6a',
+                        warning: '#e0af68',
+                        muted: '#565f89',
+                        terminalBg: '#0f0f14'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { background-color: #1a1b26; color: #a9b1d6; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #16161e; }
+        ::-webkit-scrollbar-thumb { background: #565f89; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #7aa2f7; }
+        
+        .fade-in { opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease-out, transform 0.6s ease-out; }
+        .fade-in.visible { opacity: 1; transform: translateY(0); }
+        .typing-container { display: inline-block; overflow: hidden; white-space: nowrap; border-right: 3px solid #7aa2f7; animation: blink-caret .75s step-end infinite; }
+        @keyframes blink-caret { from, to { border-color: transparent } 50% { border-color: #7aa2f7; } }
+        
+        .node-card { transition: all 0.3s ease; border: 1px solid #565f89; }
+        .node-card:hover { border-color: #7aa2f7; box-shadow: 0 0 15px rgba(122, 162, 247, 0.3); transform: translateY(-3px); cursor: pointer; }
+        
+        .packet { width: 8px; height: 8px; background-color: #9ece6a; border-radius: 50%; position: absolute; box-shadow: 0 0 10px #9ece6a; animation: packet-move 2s linear infinite; opacity: 0; }
+        @keyframes packet-move { 0% { left: 0%; opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { left: 100%; opacity: 0; } }
+
+        .terminal-input { background: transparent; border: none; outline: none; color: #a9b1d6; width: 75%; font-family: 'JetBrains Mono', monospace; }
+    </style>
+</head>
+<body class="font-mono antialiased selection:bg-accent selection:text-dark">
+
+    <div class="max-w-4xl mx-auto px-6 py-12 md:py-20">
+
+        <header class="fade-in mb-16">
+            <div class="text-muted text-sm mb-2"><i class="fa-solid fa-folder-open mr-2"></i>~/portfolio</div>
+            <h1 class="text-4xl md:text-5xl font-bold text-accent mb-4">
+                <span class="text-success">$</span> <span class="typing-container" id="typewriter"></span>
+            </h1>
+            <p class="text-xl text-gray-300 mb-6">Backend Developer</p>
+            
+            <div class="flex space-x-6 text-2xl">
+                <a href="https://github.com/dhananajay-030" target="_blank" class="text-muted hover:text-accent transition-colors"><i class="fa-brands fa-github"></i></a>
+                <a href="https://www.linkedin.com/in/dhananjay-kumar-4a9220425?utm_source=share_via&utm_content=profile&utm_medium=member_android" target="_blank" class="text-muted hover:text-accent transition-colors"><i class="fa-brands fa-linkedin"></i></a>
+                <a href="mailto:dks261008@gmail.com" class="text-muted hover:text-accent transition-colors"><i class="fa-solid fa-envelope"></i></a>
+            </div>
+        </header>
+
+        <section class="fade-in mb-16">
+            <h2 class="text-2xl font-bold text-accent mb-4"><span class="text-muted">#</span> Interactive Terminal</h2>
+            <p class="text-sm text-muted mb-4">Type 'help' to check options. Standard file system flags apply.</p>
+            
+            <div class="bg-terminalBg rounded-lg border border-gray-700 shadow-2xl overflow-hidden font-mono text-sm h-96 flex flex-col">
+                <div class="bg-darker px-4 py-2 flex items-center border-b border-gray-800">
+                    <div class="flex space-x-2 mr-4">
+                        <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                        <div class="w-3 h-3 rounded-full bg-warning"></div>
+                        <div class="w-3 h-3 rounded-full bg-success"></div>
+                    </div>
+                    <div id="terminal-title" class="text-muted text-xs mx-auto">dhananjay@archlinux: ~</div>
+                </div>
+                
+                <div id="terminal-body" class="p-4 overflow-y-auto flex-grow text-gray-300">
+                    <div class="mb-2 text-accent">Welcome to Dhananjay's OS v1.4.1</div>
+                    <div class="mb-4 text-muted">Type 'ls' to view structure, 'cat whoami.txt' for profile specs, or 'metrics' for live telemetry. <span class="text-accent">Tab</span> autocompletes · <span class="text-accent">↑↓</span> cycles history.</div>
+                    <div id="terminal-output"></div>
+                    
+                    <div class="flex items-center mt-2">
+                        <span id="terminal-prompt" class="text-success font-bold mr-2 select-none">dhananjay@archlinux:~$</span>
+                        <input type="text" id="terminal-input" class="terminal-input" autocomplete="off" spellcheck="false" autofocus>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="fade-in mb-16 bg-darker p-6 rounded-lg border border-gray-800 shadow-lg">
+            <p class="text-gray-300 leading-relaxed mb-4">
+                I design and implement scalable, resilient backend architectures. My focal points include building clean concurrent structures in Go, optimizing relational database access, and establishing precise system instrumentation for production environments.
+            </p>
+            <p class="text-muted leading-relaxed">
+                When away from systems programming and terminal interfaces, I spend my time writing literature and on the basketball court.
+            </p>
+        </section>
+
+        <section class="fade-in mb-20">
+            <h2 class="text-2xl font-bold text-accent mb-6"><span class="text-muted">#</span> System Architecture Flow</h2>
+            
+            <div class="relative bg-darker p-8 rounded-lg border border-gray-800 overflow-hidden">
+                <div class="absolute top-1/2 left-0 w-full h-0.5 bg-gray-800 -translate-y-1/2 z-0">
+                    <div class="packet"></div>
+                </div>
+
+                <div class="relative z-10 grid grid-cols-1 md:grid-cols-4 gap-6 text-center">
+                    <div class="node-card bg-dark p-4 rounded" onmouseover="updateInfo('client')" onmouseout="resetInfo()">
+                        <i class="fa-solid fa-browser text-3xl text-warning mb-2"></i>
+                        <h3 class="font-bold">Client</h3>
+                    </div>
+                    <div class="node-card bg-dark p-4 rounded" onmouseover="updateInfo('gateway')" onmouseout="resetInfo()">
+                        <i class="fa-solid fa-network-wired text-3xl text-success mb-2"></i>
+                        <h3 class="font-bold">Nginx</h3>
+                    </div>
+                    <div class="node-card bg-dark p-4 rounded" onmouseover="updateInfo('app')" onmouseout="resetInfo()">
+                        <i class="fa-brands fa-golang text-4xl text-accent mb-2"></i>
+                        <h3 class="font-bold">Go Backend</h3>
+                    </div>
+                    <div class="node-card bg-dark p-4 rounded" onmouseover="updateInfo('db')" onmouseout="resetInfo()">
+                        <i class="fa-solid fa-database text-3xl text-purple-400 mb-2"></i>
+                        <h3 class="font-bold">PostgreSQL</h3>
+                    </div>
+                </div>
+
+                <div id="diagram-info" class="mt-8 p-4 bg-dark rounded border-l-4 border-accent text-sm min-h-[100px] flex items-center transition-all duration-300">
+                    <span class="text-muted">Hover over a system node above to check logic breakdowns.</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="fade-in mb-16">
+            <h2 class="text-2xl font-bold text-accent mb-8"><span class="text-muted">#</span> Core Implementations</h2>
+            
+            <div class="space-y-6">
+                <div class="bg-darker p-6 rounded-lg border-l-2 border-success hover:border-accent transition-colors">
+                    <h3 class="text-xl font-bold mb-2">RESTful API Architecture</h3>
+                    <p class="text-gray-400 text-sm mb-3">Go • Gin • JWT • SQLC</p>
+                    <ul class="list-disc list-inside text-gray-300 space-y-1 text-sm">
+                        <li>Containerized CRUD API structured with strict Handler, Service, and Repository layers.</li>
+                        <li>Implemented JWT Authentication with secure bcrypt hashing and refresh token rotation.</li>
+                        <li>Utilized SQLC for compile-time type-safe database queries.</li>
+                    </ul>
+                </div>
+
+                <div class="bg-darker p-6 rounded-lg border-l-2 border-warning hover:border-accent transition-colors">
+                    <h3 class="text-xl font-bold mb-2">Database Optimization & Concurrency</h3>
+                    <p class="text-gray-400 text-sm mb-3">PostgreSQL • MVCC</p>
+                    <ul class="list-disc list-inside text-gray-300 space-y-1 text-sm">
+                        <li>Optimized DB interactions by resolving N+1 recursive query issues with explicit SQL joins.</li>
+                        <li>Handled highly concurrent updates securely using PostgreSQL's RETURNING clause.</li>
+                        <li>Designed schemas based on Multi-Version Concurrency Control (MVCC) isolation behaviors.</li>
+                    </ul>
+                </div>
+
+                <div class="bg-darker p-6 rounded-lg border-l-2 border-purple-400 hover:border-accent transition-colors">
+                    <h3 class="text-xl font-bold mb-2">Fault Tolerance & Observability</h3>
+                    <p class="text-gray-400 text-sm mb-3">Redis • Prometheus • OpenTelemetry • Docker</p>
+                    <ul class="list-disc list-inside text-gray-300 space-y-1 text-sm">
+                        <li>Built resiliency using Idempotency-Key headers in Redis to prevent duplicate mutations.</li>
+                        <li>Protected external requests via Circuit Breakers and Exponential Backoff with Jitter.</li>
+                        <li>Instrumented 3-pillar observability: structured logging (slog), metrics, and tracing.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <footer class="fade-in text-center text-muted text-sm pt-8 border-t border-gray-800">
+            <p>Built with <i class="fa-solid fa-code text-accent mx-1"></i> by Dhananjay</p>
+            <p class="mt-2">Hosted on Linux. Edited in NeoVim.</p>
+        </footer>
+
+    </div>
+
+    <script>
+        // Typewriter Effect
+        const textToType = "Dhananjay";
+        const typewriterElement = document.getElementById('typewriter');
+        let index = 0;
+        function type() {
+            if (index < textToType.length) {
+                typewriterElement.innerHTML += textToType.charAt(index);
+                index++;
+                setTimeout(type, 150);
+            }
+        }
+        setTimeout(type, 500);
+
+        // Scroll Observer
+        const observerOptions = { root: null, rootMargin: '0px', threshold: 0.1 };
+        const observer = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+        document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+        // Interactive Diagram Logic
+        const infoPanel = document.getElementById('diagram-info');
+        const defaultInfo = '<span class="text-muted">Hover over a system node above to check logic breakdowns.</span>';
+        const details = {
+            client: `<strong><span class="text-warning">Client Request:</span></strong> Initiates API call via standard HTTP/HTTPS protocols with JSON payloads.`,
+            gateway: `<strong><span class="text-success">Nginx Reverse Proxy:</span></strong> Handles TLS termination (Let's Encrypt), rate limiting, and forwards validated packets.`,
+            app: `<strong><span class="text-accent">Go (Golang) Service:</span></strong> Processes business logic. Implements JWT validation, Circuit Breakers, and structured logging.`,
+            db: `<strong><span class="text-purple-400">Data Layer:</span></strong> PostgreSQL handles persistent relational data. Redis acts as an LRU cache and message broker.`
+        };
+
+        function updateInfo(node) {
+            infoPanel.innerHTML = details[node];
+            infoPanel.classList.add('text-gray-200');
+        }
+        function resetInfo() {
+            infoPanel.innerHTML = defaultInfo;
+            infoPanel.classList.remove('text-gray-200');
+        }
+
+        // --- Shell Environment State ---
+        let currentDirectory = "root"; 
+
+        const rootFiles = {
+            'whoami.txt': `========================================================================<br>` +
+                          `<strong>[Identity]</strong>: Dhananjay<br>` +
+                          `<strong>[Role]</strong>: Backend Engineer / Systems Programmer<br>` +
+                          `------------------------------------------------------------------------<br>` +
+                          `<strong>[Core Focus]</strong>: Designing reliable systems that do not break under load. <br>` +
+                          `I focus extensively on high-concurrency configurations, thread-safe memory management <br>` +
+                          `in Go, and strict structural boundaries between transport and data layer logics.<br>` +
+                          `I write low-overhead, optimized services and prefer using standard library tools <br>` +
+                          `where appropriate to avoid application bloat.<br>` +
+                          `========================================================================`,
+            
+            'skills.txt': `========================================================================<br>` +
+                          `<strong>SYSTEM CORE ARCHITECTURE & TOOLKIT DIAGNOSTICS</strong><br>` +
+                          `========================================================================<br>` +
+                          `<strong>LANGUAGES</strong>      :: Go (Golang), SQL (Postgres syntax), Python, Bash, Lua<br>` +
+                          `<strong>ARCHITECTURES</strong>  :: Layered (Handler/Service/Repository), REST APIs, Microservices<br>` +
+                          `<strong>DATA STORES</strong>    :: PostgreSQL (MVCC, Index Optimization), Redis (Caching, TTL)<br>` +
+                          `<strong>OBSERVABILITY</strong>  :: OpenTelemetry, Jaeger Tracing, Prometheus Metrics, Grafana, slog<br>` +
+                          `<strong>INFRA / DEVOPS</strong> :: Docker, Docker Compose, Nginx Configuration, GitHub Actions CI/CD<br>` +
+                          `<strong>ENVIRONMENT</strong>   :: Arch Linux, NeoVim (LazyVim workflow), tmux terminal environments<br>` +
+                          `========================================================================`,
+            
+            'contact.txt': `========================================================================<br>` +
+                           `<strong>ESTABLISHING LINK CONNECTIVITY...</strong><br>` +
+                           `========================================================================<br>` +
+                           `<strong>E-MAIL</strong>    :: <span class="text-accent">your_email@example.com</span><br>` +
+                           `<strong>GITHUB</strong>    :: <span class="text-accent">github.com/yourhandle</span><br>` +
+                           `<strong>LINKEDIN</strong>  :: <span class="text-accent">linkedin.com/in/yourprofile</span><br>` +
+                           `------------------------------------------------------------------------<br>` +
+                           `Drop a ping if you want to debate system decoupling strategies, database isolation levels,<br>` +
+                           `or compile-time query type-safety setups.<br>` +
+                           `========================================================================`
+        };
+
+        const shayariFiles = {
+            'samay_ki_maar.txt': `<span class='text-purple-400 italic'>Zamana thak gaya hai waqt ki kashti chalane mein,<br>` +
+                                 `Sadiyan beet jati hain ek lamha bitane mein.<br><br>` +
+                                 `Humne har ek saans ka sadqa diya magar phir bhi,<br>` +
+                                 `Bade kangaal nikle hum purani yaadein kamane mein.<br><br>` +
+                                 `Wahi deewar-o-dar hain aur wahi tanhai ka aalam,<br>` +
+                                 `Magar ek umr guzri hai khud ko khud se chhupane mein.<br><br>` +
+                                 `Na wo dariya raha baaki na wo kashti ka rukh badla,<br>` +
+                                 `Faqat hum jal gaye saahil pe ek manzar banane mein.<br><br>` +
+                                 `Guzre huye lamhon ko jo tum baandhne nikle,<br>` +
+                                 `Zara dekho kitna kho chuke ho khud ko pane mein.<br><br>` +
+                                 `Ab kaun bataye in musafir-e-shab ko,<br>` +
+                                 `Ki raaste khatm hote hain bas ghar laut jane mein.</span>`,
+            
+            'bikti_manzilein.txt': `<span class='text-purple-400 italic'>Sari mehnat hi fuzool hai is mitti ke makaan mein,<br>` +
+                                   `Waqt thaharta hi nahi kisi ke bhi imtihan mein.<br><br>` +
+                                   `Haath khali hain mere, par bojh sadiyon ka hai,<br>` +
+                                   `Ek ajeeb si thakan bhari hai , is wujood-e-gumnaam mein.<br><br>` +
+                                   `Waqt ke paas toh fursat hi fursat thi magar,<br>` +
+                                   `Hum hi kharch ho gaye, is fizool-e-kaam mein.<br><br>` +
+                                   `Wo jo reet ki tarah nikal gaya ungliyon ke darmiyan se,<br>` +
+                                   `Usi ka nasha baki hai ab tak, yaadon ke is jaam mein.<br><br>` +
+                                   `Yaadein toh wo dewar hai jo kabhi girti nahi,<br>` +
+                                   `Baqi sab toh dhal gaya waqt ke is shamshaan mein.<br><br>` +
+                                   `Hum toh bas ek musafir hain us raste ke ,<br>` +
+                                   `Jahan manzilein bik jati hain, raste ke hi daam mein.</span>`,
+            
+            'unke_laut_aane_tak.txt': `<span class='text-purple-400 italic'>Dhal gaya aftab aur wo rukh mod kar jaane lage,<br>` +
+                                       `Mere andar ke kai hisse bikhar kar shor machane lage.<br>` +
+                                       `"Ruk jao" ki sadaa halaq mein hi ghut kar reh gayi ,<br>` +
+                                       `Par wo muqaddar ki lakeer thhe, jo rasta badal kar jaane lage.<br><br>` +
+                                       `Ab ye saaye khinchne lage hain kisi talkh aziyat ki tarah,<br>` +
+                                       `Waqt ki raftar thham gayi hai ek sadiyon purani vasiyat ki tarah.<br>` +
+                                       `Bas ek unke laut aane ki muntazir hai ye meri bhatakti nazar,<br>` +
+                                       `Ki wo aayein to fizao mein thodi roshni ho, thoda ho asar.<br><br>` +
+                                       `Mujhe ab suraj ki kiran se koi shauq-e-didar nahi raha,<br>` +
+                                       `Unke chehre ke bina is chaman mein ab koi bahaar nahi raha.<br>` +
+                                       `Har raat ek aisa fareb hai jisme main hosh khona chahta hoon,<br>` +
+                                       `Unki yaadon ki chadar odh kar ab bas sona chahta hoon.<br><br>` +
+                                       `Ye duniya, ye log, ye mehfil, sab mitti ke dher lagte hain,<br>` +
+                                       `Unke bina to apne ghar ke dar-o-divar hame gher lete hain.<br><br>` +
+                                       `Jab wo lautenge, tabhi is murda jism mein jaan aayegi,<br>` +
+                                       `Warna ye zindagi to bas rasm-e-duniya nibha kar chali jayegi.</span>`
+        };
+
+        const staticCommands = {
+            'whoami': "dhananjay",
+            'help': "Available commands: <br> - <strong>ls</strong> <br> - <strong>cd [dir]</strong> <br> - <strong>pwd</strong> <br> - <strong>cat [file]</strong> <br> - <strong>whoami</strong> <br> - <strong>neofetch</strong> <br> - <strong>metrics</strong> &nbsp;← live telemetry cluster<br> - <strong>clear</strong><br><br><span class='text-muted'>Tip: Tab autocompletes · ↑↓ arrows cycle history</span>",
+            'neofetch': `<div class="text-accent flex">
+                            <div class="mr-4 font-bold">
+                              /\\<br>
+                             /  \\<br>
+                            /____\\
+                            </div>
+                            <div>
+                                OS: Arch Linux x86_64<br>
+                                Kernel: 6.8.9-arch1-1<br>
+                                Shell: bash 5.2.26<br>
+                                Editor: nvim (LazyVim setup)<br>
+                                WM/DE: KDE Plasma (No-mouse workflow)
+                            </div>
+                         </div>`,
+            'sudo': "Permission denied. Absolute core namespace restrictions active."
+        };
+
+        function updatePromptUI() {
+            const prompt = document.getElementById('terminal-prompt');
+            const title = document.getElementById('terminal-title');
+            if (currentDirectory === "root") {
+                prompt.innerHTML = "dhananjay@archlinux:~$";
+                title.innerHTML = "dhananjay@archlinux: ~";
+            } else {
+                prompt.innerHTML = "dhananjay@archlinux:~/.shayari$";
+                title.innerHTML = "dhananjay@archlinux: ~/.shayari";
+            }
+        }
+
+        // ─────────────────────────────────────────────
+        // FEATURE 1: Command History (ArrowUp / ArrowDown)
+        // ─────────────────────────────────────────────
+        let commandHistory = [];
+        let historyIndex = -1;
+
+        // ─────────────────────────────────────────────
+        // FEATURE 2: Tab Autocomplete — context-aware
+        // ─────────────────────────────────────────────
+        const rootCompletions = {
+            'cat ':      ['whoami.txt', 'skills.txt', 'contact.txt', '.shayari/'],
+            'cat .':     ['.shayari/'],
+            'cat .shayari/': ['samay_ki_maar.txt', 'bikti_manzilein.txt', 'unke_laut_aane_tak.txt'],
+            'cd ':       ['.shayari'],
+            'ls ':       ['-a', '.shayari'],
+        };
+        const shayariCompletions = {
+            'cat ':      ['samay_ki_maar.txt', 'bikti_manzilein.txt', 'unke_laut_aane_tak.txt'],
+            'cd ':       ['..'],
+        };
+        const topLevelCmds = ['cat ', 'cd ', 'ls', 'ls ', 'pwd', 'whoami', 'neofetch', 'clear', 'help', 'sudo', 'metrics'];
+
+        function getTabCompletion(currentVal) {
+            const completions = currentDirectory === "root" ? rootCompletions : shayariCompletions;
+            // 1. Try argument-level completion (e.g. "cat sk" → "cat skills.txt")
+            for (const [prefix, options] of Object.entries(completions)) {
+                if (currentVal.startsWith(prefix)) {
+                    const partial = currentVal.slice(prefix.length);
+                    const match = options.find(o => o.startsWith(partial) && o !== partial);
+                    if (match) return prefix + match;
+                }
+            }
+            // 2. Try command-level completion (e.g. "ne" → "neofetch")
+            const match = topLevelCmds.find(c => c.startsWith(currentVal) && c !== currentVal);
+            return match ? match : null;
+        }
+
+        // ─────────────────────────────────────────────
+        // FEATURE 3: metrics command — live telemetry
+        // ─────────────────────────────────────────────
+        let metricsInterval = null;
+
+        function stopMetrics() {
+            if (metricsInterval) {
+                clearInterval(metricsInterval);
+                metricsInterval = null;
+            }
+        }
+
+        function startMetrics() {
+            stopMetrics();
+            const metricsId = `metrics-${Date.now()}`;
+            terminalOutput.innerHTML += `<div id="${metricsId}" class="mt-1 mb-3"></div>`;
+
+            let tick = 0;
+            function renderMetrics() {
+                const el = document.getElementById(metricsId);
+                if (!el) { stopMetrics(); return; }
+
+                const cpu        = (30 + Math.sin(tick * 0.4) * 18 + Math.random() * 8).toFixed(1);
+                const mem        = (512 + Math.sin(tick * 0.2) * 120 + Math.random() * 40).toFixed(0);
+                const gc         = Math.floor(30 + Math.random() * 15);
+                const goroutines = Math.floor(24 + Math.sin(tick * 0.5) * 6 + Math.random() * 4);
+                const rps        = Math.floor(420 + Math.sin(tick * 0.3) * 180 + Math.random() * 50);
+                const p99        = (18 + Math.sin(tick * 0.6) * 10 + Math.random() * 5).toFixed(1);
+                const pool       = Math.floor(8 + Math.random() * 7);
+                const queueDepth = Math.floor(Math.random() * 12);
+                const uptime     = tick * 2;
+
+                const cpuPct  = parseFloat(cpu) / 100;
+                const memPct  = parseFloat(mem) / 900;
+                const rpsPct  = rps / 700;
+
+                function barColor(pct) {
+                    return pct > 0.75 ? '#f7768e' : pct > 0.45 ? '#e0af68' : '#9ece6a';
+                }
+                function barHTML(pct, label, valStr) {
+                    const color = barColor(pct);
+                    return `
+                    <div style="display:flex;align-items:center;gap:8px;margin:3px 0;">
+                        <span style="color:#565f89;width:72px;flex-shrink:0;font-size:11px;">${label}</span>
+                        <div style="flex:1;background:#1a1b26;border:1px solid #2a2b36;border-radius:2px;height:10px;overflow:hidden;">
+                            <div style="width:${Math.min(100,pct*100).toFixed(1)}%;height:100%;background:${color};transition:width 0.6s ease;"></div>
+                        </div>
+                        <span style="color:${color};width:62px;text-align:right;flex-shrink:0;font-size:11px;">${valStr}</span>
+                    </div>`;
+                }
+
+                el.innerHTML = `
+                <div style="border:1px solid #2a2b36;border-radius:4px;padding:10px 12px;background:#0d0d11;font-family:'JetBrains Mono',monospace;font-size:11px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #2a2b36;">
+                        <span style="color:#e0af68;font-weight:700;letter-spacing:0.05em;">SYSTEM TELEMETRY CLUSTER</span>
+                        <span style="color:#565f89;">tick:${String(tick).padStart(4,'0')} &nbsp;·&nbsp; uptime:${uptime}s</span>
+                    </div>
+                    ${barHTML(cpuPct,  'CPU USAGE',  cpu  + '%')}
+                    ${barHTML(memPct,  'HEAP ALLOC', mem  + ' MB')}
+                    ${barHTML(rpsPct,  'REQ / SEC',  rps  + ' rps')}
+                    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:8px;padding-top:6px;border-top:1px solid #2a2b36;">
+                        <div><div style="color:#565f89;font-size:10px;">GOROUTINES</div><div style="color:#7aa2f7;">${goroutines}</div></div>
+                        <div><div style="color:#565f89;font-size:10px;">GC CYCLES</div><div style="color:#7aa2f7;">${gc}</div></div>
+                        <div><div style="color:#565f89;font-size:10px;">DB POOL</div><div style="color:#7aa2f7;">${pool}/15</div></div>
+                        <div><div style="color:#565f89;font-size:10px;">P99 LATENCY</div><div style="color:#7aa2f7;">${p99}ms</div></div>
+                        <div><div style="color:#565f89;font-size:10px;">TX QUEUE</div><div style="color:#7aa2f7;">${queueDepth}</div></div>
+                        <div><div style="color:#565f89;font-size:10px;">STATUS</div><div style="color:#9ece6a;">● LIVE</div></div>
+                    </div>
+                    <div style="color:#565f89;font-size:10px;margin-top:6px;">[press Enter or type any command to stop]</div>
+                </div>`;
+
+                tick++;
+                terminalBody.scrollTop = terminalBody.scrollHeight;
+            }
+
+            renderMetrics();
+            metricsInterval = setInterval(renderMetrics, 800);
+        }
+
+        // ─────────────────────────────────────────────
+        // Main keydown handler
+        // ─────────────────────────────────────────────
+        const terminalInput = document.getElementById('terminal-input');
+        const terminalOutput = document.getElementById('terminal-output');
+        const terminalBody = document.getElementById('terminal-body');
+
+        terminalInput.addEventListener('keydown', function(e) {
+
+            // ── Tab Autocomplete ──
+            if (e.key === 'Tab') {
+                e.preventDefault();
+                const completion = getTabCompletion(this.value);
+                if (completion) {
+                    this.value = completion;
+                    // Flash the input briefly to signal completion
+                    this.style.color = '#7aa2f7';
+                    setTimeout(() => { this.style.color = ''; }, 180);
+                }
+                return;
+            }
+
+            // ── Arrow History ──
+            if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                if (commandHistory.length === 0) return;
+                if (historyIndex === -1) historyIndex = commandHistory.length - 1;
+                else if (historyIndex > 0) historyIndex--;
+                this.value = commandHistory[historyIndex];
+                // Move caret to end
+                setTimeout(() => this.setSelectionRange(this.value.length, this.value.length), 0);
+                return;
+            }
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                if (historyIndex === -1) return;
+                if (historyIndex < commandHistory.length - 1) {
+                    historyIndex++;
+                    this.value = commandHistory[historyIndex];
+                } else {
+                    historyIndex = -1;
+                    this.value = '';
+                }
+                setTimeout(() => this.setSelectionRange(this.value.length, this.value.length), 0);
+                return;
+            }
+
+            // ── Enter: Execute ──
+            if (e.key === 'Enter') {
+                e.preventDefault();
+
+                // Stop metrics if running
+                if (metricsInterval) stopMetrics();
+
+                const inputVal = this.value.trim();
+                const args = inputVal.split(/\s+/);
+                const cmd = args[0].toLowerCase();
+
+                // Save to history (skip blanks & duplicates)
+                if (inputVal && commandHistory[commandHistory.length - 1] !== inputVal) {
+                    commandHistory.push(inputVal);
+                }
+                historyIndex = -1;
+
+                let response = '';
+                const activePrompt = document.getElementById('terminal-prompt').innerText;
+
+                // Log execution line instantly
+                terminalOutput.innerHTML += `<div><span class="text-success font-bold">${activePrompt}</span> ${inputVal}</div>`;
+
+                if (inputVal === '') {
+                    // Empty execution block pass
+                } else if (cmd === 'clear') {
+                    terminalOutput.innerHTML = '';
+                    this.value = '';
+                    return;
+                } else if (cmd === 'metrics') {
+                    // ── METRICS ──
+                    this.value = '';
+                    terminalBody.scrollTop = terminalBody.scrollHeight;
+                    startMetrics();
+                    return;
+                } else if (cmd === 'pwd') {
+                    response = currentDirectory === "root" ? "/home/dhananjay" : "/home/dhananjay/.shayari";
+                }
+                // --- LS MAPS ---
+                else if (cmd === 'ls') {
+                    const flag = args[1];
+                    if (currentDirectory === "root") {
+                        if (flag === "-a") {
+                            response = "<span class='text-accent font-bold'>.shayari/</span>&nbsp;&nbsp;&nbsp;&nbsp;whoami.txt&nbsp;&nbsp;&nbsp;&nbsp;skills.txt&nbsp;&nbsp;&nbsp;&nbsp;contact.txt";
+                        } else if (!flag) {
+                            response = "whoami.txt&nbsp;&nbsp;&nbsp;&nbsp;skills.txt&nbsp;&nbsp;&nbsp;&nbsp;contact.txt";
+                        } else if (flag === ".shayari" || flag === ".shayari/") {
+                            response = "samay_ki_maar.txt&nbsp;&nbsp;&nbsp;&nbsp;bikti_manzilein.txt&nbsp;&nbsp;&nbsp;&nbsp;unke_laut_aane_tak.txt";
+                        } else {
+                            response = `ls: cannot access '${flag}': No such file or directory structure.`;
+                        }
+                    } else {
+                        if (flag === "-a" || !flag) {
+                            response = "samay_ki_maar.txt&nbsp;&nbsp;&nbsp;&nbsp;bikti_manzilein.txt&nbsp;&nbsp;&nbsp;&nbsp;unke_laut_aane_tak.txt";
+                        } else {
+                            response = `ls: cannot access '${flag}': Structural domain bounded.`;
+                        }
+                    }
+                }
+                // --- CD MAPS ---
+                else if (cmd === 'cd') {
+                    const dest = args[1];
+                    if (!dest || dest === ".") {
+                        // Execution stays loop-locked
+                    } else if (dest === "..") {
+                        if (currentDirectory === "shayari") {
+                            currentDirectory = "root";
+                            updatePromptUI();
+                        }
+                    } else if (dest === ".shayari" || dest === ".shayari/") {
+                        if (currentDirectory === "root") {
+                            currentDirectory = "shayari";
+                            updatePromptUI();
+                        } else {
+                            response = "cd: Already matching local directory space.";
+                        }
+                    } else {
+                        response = `bash: cd: ${dest}: No mapping space found.`;
+                    }
+                }
+                // --- CAT MAPS ---
+                else if (cmd === 'cat') {
+                    if (args.length > 1) {
+                        const target = args[1];
+                        if (currentDirectory === "root") {
+                            if (rootFiles[target]) {
+                                response = rootFiles[target];
+                            } else if (target.startsWith('.shayari/')) {
+                                const filePart = target.replace('.shayari/', '');
+                                response = shayariFiles[filePart] || `cat: ${target}: Scope index target dead.`;
+                            } else if (target === '.shayari') {
+                                response = "cat: .shayari: Is a directory cluster point.";
+                            } else {
+                                response = `cat: ${target}: Scope context null.`;
+                            }
+                        } else {
+                            if (shayariFiles[target]) {
+                                response = shayariFiles[target];
+                            } else if (rootFiles[target]) {
+                                response = `cat: ${target}: Target is located at root parent directory. Run 'cd ..' first.`;
+                            } else {
+                                response = `cat: ${target}: File descriptors miss inside local scope.`;
+                            }
+                        }
+                    } else {
+                        response = "cat: Missing standard context reference operand.";
+                    }
+                }
+                // --- STATICS ---
+                else if (staticCommands[cmd]) {
+                    response = staticCommands[cmd];
+                } else {
+                    response = `bash: ${cmd}: command parsing vector lookup failure.`;
+                }
+
+                if (response) {
+                    terminalOutput.innerHTML += `<div class="mt-1 mb-3 text-gray-300 font-mono">${response}</div>`;
+                }
+
+                this.value = '';
+                terminalBody.scrollTop = terminalBody.scrollHeight;
+            }
+        });
+
+        terminalBody.addEventListener('click', () => {
+            terminalInput.focus();
+        });
+    </script>
+</body>
+</html>
